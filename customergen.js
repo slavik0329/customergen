@@ -30,7 +30,8 @@ module.exports = function (filename, keyword, locationString, callback) {
 				out+= '"'+keyword+'", "'+locationString+'", "' + lead.name + '", "' + lead.emails.join(",") + '", "' + lead.website + '", "' + lead.formatted_phone_number + '", "' + lead.formatted_address + '", "' + lead.rating + '"\n';
 			}
 		})
-		fs.writeFile( "out/"+filename + ".csv", out );
+		// fs.writeFile( "out/"+filename + ".csv", out );
+		callback(out);
 	}
 }
 
