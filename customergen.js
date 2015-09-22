@@ -62,7 +62,7 @@ function googleExtract (outFile, keyword, locationString, callback) {
 	 }, function(error, response, body){
 	 	response = JSON.parse(body);
 	 	location=[response.results[0].geometry.location.lat, response.results[0].geometry.location.lng]
-	 	console.log(location);
+	 	// console.log(location);
 
 	 	findPlaces();
 
@@ -96,7 +96,7 @@ function googleExtract (outFile, keyword, locationString, callback) {
 				// getDetails( response.results[i].reference )
 				refs.push(response.results[i].reference )
 
-				console.log("Loaded: " + response.results[i].name)
+				// console.log("Loaded: " + response.results[i].name)
 
 
 			}
@@ -145,7 +145,7 @@ function googleExtract (outFile, keyword, locationString, callback) {
 
 	 			leads.push( lead );
 	 			var percent = Math.round((detailIndex/refs.length)*100)
-	 			console.log("Loaded Details ("+percent+"%): " + lead.name)
+	 			// console.log("Loaded Details ("+percent+"%): " + lead.name)
 	 			// console.log(lead);
 	 			counter++;
 	 		}
@@ -173,7 +173,7 @@ function siteParser(leads, callback) {
 		}, 30000)
 
 		if ( leads.length < count + 1 ) {
-			console.log("Finished");
+			// console.log("Finished");
 			var json = JSON.stringify(fullLeads);
 			clearTimeout(myInterval);
 			// fs.writeFileSync( filename + "_emails", json );
@@ -196,7 +196,7 @@ function siteParser(leads, callback) {
 			count++;
 
 			var percent = Math.round((count/leads.length)*100);
-	    	console.log( "Loaded ("+percent+"%) " + tmpLead.name + " - " + tmpLead.website );
+	    	// console.log( "Loaded ("+percent+"%) " + tmpLead.name + " - " + tmpLead.website );
 
 	    	clearTimeout( myInterval );
 
@@ -207,12 +207,12 @@ function siteParser(leads, callback) {
 	    	}, 1000)
 		}
 
-		console.log( "Loading: " + leads[count].name + " - " + leads[count].website );
+		// console.log( "Loading: " + leads[count].name + " - " + leads[count].website );
 
 		crawler = Crawler.crawl(leads[count].website)
 		    .on("fetchcomplete", function(queueItem, buf, response) {
 	        	var html = buf.toString();
-	        		    	console.log(queueItem.url)
+	        		    	// console.log(queueItem.url)
 
 
 	        	var tmpEmails = (html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || []);
@@ -229,19 +229,19 @@ function siteParser(leads, callback) {
 	    		finishedSite();
 		    })
 		    .on("fetchtimeout", function (queueItem) {
-		    	console.log(queueItem.url + " - timeout")
+		    	// console.log(queueItem.url + " - timeout")
 		    })
 		    .on("fetchclienterror", function (queueItem) {
-		    	console.log(queueItem.url + " - clienterror")
+		    	// console.log(queueItem.url + " - clienterror")
 		    })
 		    .on("fetchdataerror", function (queueItem) {
-		    	console.log(queueItem.url + " - dataerror")
+		    	// console.log(queueItem.url + " - dataerror")
 		    })
 		    .on("fetch404", function (queueItem) {
-		    	console.log(queueItem.url + " - 404")
+		    	// console.log(queueItem.url + " - 404")
 		    })
 		    .on("fetcherror", function (queueItem) {
-		    	console.log(queueItem.url + " - fetcherror")
+		    	// console.log(queueItem.url + " - fetcherror")
 		    });
 
 
