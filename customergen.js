@@ -171,12 +171,7 @@ function siteParser(leads, callback) {
         }
 
         function finishedSite() {
-            console.log("finishedsite- checking")
-            console.log(emails)
             validateEmails(emails, function (validEmails) {
-                console.log("finishedvalid")
-                console.log(validEmails)
-
                 var tmpLead = {
                     name: leads[count].name,
                     emails: validEmails,
