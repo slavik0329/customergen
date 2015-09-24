@@ -2,6 +2,8 @@ var fs = require("fs");
 var request = require('request');
 var GooglePlaces = require("googleplaces");
 var Crawler = require("simplecrawler");
+var kickbox = require('kickbox').client('09912783a34a39ea166dd350405719e0a5f016ace5b38ca161fe7cd6353c5b9c').kickbox();
+
 
 module.exports = function(filename, keyword, locationString, callback) {
     googleExtract(filename, keyword, locationString, function(leads) {
@@ -142,27 +144,61 @@ function siteParser(leads, callback) {
         }
         var emails = [];
 
+        function validateEmails( emails, callback ) {
+            var validateCount = 0;
+            var validEmails = [];
+
+            function validateNext() {
+                if ( validateCount+1 > emails.length ) {
+                    callback(validEmails);
+                    return;
+                }
+
+                kickbox.verify(emails[validateCount], function (err, response) {
+                  // Let's see some results
+                  if ( response.body.result == "deliverable" || response.body.result == "risky" ) {
+                      validEmails.push( emails[validateCount] );
+                  } else {
+                  }
+                  validateCount++;
+                  validateNext();
+                  // console.log(response.body);
+                });
+            }
+
+            validateNext();
+            
+        }
+
         function finishedSite() {
-            var tmpLead = {
-                name: leads[count].name,
-                emails: emails,
-                website: leads[count].website,
-                formatted_phone_number: leads[count].formatted_phone_number,
-                formatted_address: leads[count].formatted_address,
-                rating: leads[count].rating
-            };
+            console.log("finishedsite- checking")
+            console.log(emails)
+            validateEmails(emails, function (validEmails) {
+                console.log("finishedvalid")
+                console.log(validEmails)
 
-            fullLeads.push(tmpLead);
-            count++;
+                var tmpLead = {
+                    name: leads[count].name,
+                    emails: validEmails,
+                    website: leads[count].website,
+                    formatted_phone_number: leads[count].formatted_phone_number,
+                    formatted_address: leads[count].formatted_address,
+                    rating: leads[count].rating
+                };
 
-            // var percent = Math.round((count / leads.length) * 100);
+                fullLeads.push(tmpLead);
+                count++;
 
-            clearTimeout(myInterval);
+                // var percent = Math.round((count / leads.length) * 100);
 
-            setTimeout(function() {
-                delete crawler;
-                parseNext();
-            }, 1000)
+                clearTimeout(myInterval);
+
+                setTimeout(function() {
+                    delete crawler;
+                    parseNext();
+                }, 1000)
+            })
+
         }
 
         crawler = Crawler.crawl(leads[count].website)
