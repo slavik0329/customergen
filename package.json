@@ -4,9 +4,9 @@
   "description": "",
   "main": "customergen.js",
   "dependencies": {
+    "email-verify": "0.0.15",
     "fs": "^0.0.2",
     "googleplaces": "^0.5.1",
-    "kickbox": "^2.0.0",
     "request": "^2.63.0",
     "simplecrawler": "slavik0329/node-simplecrawler"
   },
