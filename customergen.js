@@ -154,7 +154,7 @@ function siteParser(leads, callback) {
                     return;
                 }
 
-                verifier.verify( process.argv[2], function( err, info ){
+                verifier.verify( emails[validateCount], function( err, info ){
                   if( err ) {
                     // console.log("false")
                   }
