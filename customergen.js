@@ -2,7 +2,7 @@ var fs = require("fs");
 var request = require('request');
 var GooglePlaces = require("googleplaces");
 var Crawler = require("simplecrawler");
-var verifier = require('email-verify');
+var kickbox = require('kickbox').client('09912783a34a39ea166dd350405719e0a5f016ace5b38ca161fe7cd6353c5b9c').kickbox();
 
 
 module.exports = function(filename, keyword, locationString, callback) {
@@ -154,22 +154,16 @@ function siteParser(leads, callback) {
                     return;
                 }
 
-                verifier.verify( process.argv[2], function( err, info ){
-                  if( err ) {
-                    // console.log("false")
+                kickbox.verify(emails[validateCount], function (err, response) {
+                  // Let's see some results
+                  if ( response.body.result == "deliverable" || response.body.result == "risky" ) {
+                      validEmails.push( emails[validateCount] );
+                  } else {
                   }
-                  else{
-                    if (info.success) {
-                        validEmails.push( emails[validateCount] );
-                    } else {
-                        // console.log("false")
-                    }
-                  }
-
                   validateCount++;
                   validateNext();
+                  // console.log(response.body);
                 });
-
             }
 
             validateNext();
