@@ -177,6 +177,12 @@ function siteParser(leads, callback) {
         }
 
         function finishedSite() {
+            
+            if ( count+1 > leads.length ) {
+                parseNext();
+                return;
+            }
+
             validateEmails(emails, function (validEmails) {
                 var tmpLead = {
                     name: leads[count].name,
