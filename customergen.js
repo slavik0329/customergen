@@ -184,6 +184,18 @@ function siteParser(leads, callback) {
             }
 
             validateEmails(emails, function (validEmails) {
+                if ( leads[count] == undefined ) {
+                    count++;
+                    clearTimeout(myInterval);
+
+                    setTimeout(function() {
+                        delete crawler;
+                        parseNext();
+                    }, 1000)
+
+                    return;
+                }
+
                 var tmpLead = {
                     name: leads[count].name,
                     emails: validEmails,
