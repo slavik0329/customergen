@@ -227,20 +227,36 @@ function siteParser(leads, jobId, callback) {
 
                     if ( validEmails.length ) {
 
-                        fullLeads.push(tmpLead);
+                        
+                        if (limit>0) {
+                            fullLeads.push(tmpLead);
 
-                        ParseJobs.update({
-                            _id:jobId
-                        }, {
-                            $push: {
-                                leads: tmpLead
-                            },
-                            $inc: {
-                                leadCount: 1
-                            }
-                        });
+                            ParseJobs.update({
+                                _id:jobId
+                            }, {
+                                $push: {
+                                    leads: tmpLead
+                                },
+                                $inc: {
+                                    leadCount: 1
+                                }
+                            });
 
-                        decreaseBalance(jobId);
+                            decreaseBalance(jobId);
+                        } else {
+                            ParseJobs.update({
+                                _id:jobId
+                            }, {
+                                $push: {
+                                    unpaid: tmpLead
+                                },
+                                $inc: {
+                                    unpaidCount: 1
+                                }
+                            });
+                        }
+
+                        
 
 
 
@@ -252,17 +268,6 @@ function siteParser(leads, jobId, callback) {
                         // }
 
 
-                    } else {
-                        ParseJobs.update({
-                            _id:jobId
-                        }, {
-                            $push: {
-                                unpaid: tmpLead
-                            },
-                            $inc: {
-                                unpaidCount: 1
-                            }
-                        });
                     }
                     
                     count++;
