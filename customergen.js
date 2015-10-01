@@ -7,13 +7,14 @@ var MongoClient = require('mongodb').MongoClient;
 
 var ParseJobs;
 
-module.exports = function(filename, keyword, locationString, radius, jobId, limit, callback) {
+module.exports = function(filename, keyword, locationString, radius, jobId, callback) {
     MongoClient.connect(process.env.MONGO_URL, function(err, db) {
       mongoDb = db;
 
       ParseJobs = db.collection("parseJobs");
+      Users = db.collection("users");
 
-      googleExtract(filename, keyword, locationString, radius, function(leads) {
+      googleExtract(filename, keyword, locationString, radius, jobId, function(leads) {
           step2(leads);
       });
 
@@ -21,7 +22,7 @@ module.exports = function(filename, keyword, locationString, radius, jobId, limi
 
 
     function step2(leads) {
-        siteParser(leads, jobId, limit, function(fullLeads) {
+        siteParser(leads, jobId, function(fullLeads) {
             step3(fullLeads);
         });
     }
@@ -34,10 +35,11 @@ module.exports = function(filename, keyword, locationString, radius, jobId, limi
             }
         })
         callback(out);
+        mongoDb.close();
     }
 }
 
-function googleExtract(outFile, keyword, locationString, radius, callback) {
+function googleExtract(outFile, keyword, locationString, radius, jobId, callback) {
     if (!outFile || !keyword || !locationString) {
         process.exit();
     }
@@ -51,6 +53,11 @@ function googleExtract(outFile, keyword, locationString, radius, callback) {
     var refs = [];
     var detailIndex = 0;
     var location;
+    var balance = 0;
+
+    getUserBalance( jobId, function (res) {
+        balance = res.profile.balance;
+    })
 
     request.post({
         url: "https://maps.googleapis.com/maps/api/geocode/json?address=" + locationString + "&key=" + GOOGLE_PLACES_API_KEY
@@ -81,7 +88,7 @@ function googleExtract(outFile, keyword, locationString, radius, callback) {
                 refs.push(response.results[i].reference)
             }
 
-            if (response.next_page_token) {
+            if (response.next_page_token && (balance*3)> refs.length ) {
                 setTimeout(function() {
                     findPlaces(response.next_page_token);
                 }, 5000)
@@ -129,7 +136,7 @@ function googleExtract(outFile, keyword, locationString, radius, callback) {
     }
 }
 
-function siteParser(leads, jobId, limit, callback) {
+function siteParser(leads, jobId, callback) {
     var lastTime;
     var fullLeads = [];
     var count = 0;
@@ -214,34 +221,44 @@ function siteParser(leads, jobId, limit, callback) {
                     rating: leads[count].rating
                 };
 
-                if ( validEmails.length ) {
-                    fullLeads.push(tmpLead);
+                getUserBalance( jobId, function (user) {
+                    var limit = user.profile.balance;
 
-                    ParseJobs.update({
-                        _id:jobId
-                    }, {
-                        $push: {
-                            leads: tmpLead
+                    if ( validEmails.length ) {
+
+                        fullLeads.push(tmpLead);
+
+                        ParseJobs.update({
+                            _id:jobId
+                        }, {
+                            $push: {
+                                leads: tmpLead
+                            }
+                        });
+
+                        if ( fullLeads.length>= limit ) {
+                            callback(fullLeads);
+                            return;
                         }
-                    });
 
-                    if ( fullLeads.length>= limit ) {
-                        callback(fullLeads);
-                        return;
+                        decreaseBalance(jobId);
+
                     }
-                }
+                    
+                    count++;
+
+                    // var percent = Math.round((count / leads.length) * 100);
+
+                    clearTimeout(myInterval);
+
+                    setTimeout(function() {
+                        delete crawler;
+                        parseNext();
+                    }, 1000)
+                });
+
                 
-                count++;
-
-                // var percent = Math.round((count / leads.length) * 100);
-
-                clearTimeout(myInterval);
-
-                setTimeout(function() {
-                    delete crawler;
-                    parseNext();
-                }, 1000)
-            })
+            });
 
         }
 
@@ -303,5 +320,53 @@ function siteParser(leads, jobId, limit, callback) {
             u[this[i]] = 1;
         }
         return a;
+    }
+}
+
+function getUserBalance (jobId, callback) {
+    ParseJobs.findOne({
+      _id: jobId
+    }, {
+      fields: {
+          userId: 1
+      }
+    }, getUserInfo);
+
+    function getUserInfo (err, result) {
+      if ( !err ) {
+          var user = Users.findOne({
+              _id: result.userId
+          }, {
+            fields: {
+                profile:1
+            }
+          }, function (err, res) {
+            callback(res)
+          });
+
+      }
+    }
+}
+
+function decreaseBalance(jobId) {
+    ParseJobs.findOne({
+      _id: jobId
+    }, {
+      fields: {
+          userId: 1
+      }
+    }, decreaseUserBalance);
+
+    function decreaseUserBalance (err, result) {
+      if ( !err ) {
+          var user = Users.update({
+              _id: result.userId
+          }, {
+            $inc: {
+                "profile.balance": -1
+            }
+          });
+
+      }
     }
 }
