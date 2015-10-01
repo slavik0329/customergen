@@ -247,8 +247,12 @@ function siteParser(leads, jobId, callback) {
 
                         decreaseBalance(jobId);
 
+
+
                         if ( fullLeads.length>= limit ) {
-                            callback(fullLeads);
+                            setTimeout( function () {
+                                callback(fullLeads);
+                            }, 500)
                             return;
                         }
 
