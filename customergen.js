@@ -228,11 +228,20 @@ function siteParser(leads, jobId, callback) {
 
                         fullLeads.push(tmpLead);
 
+                        var tmpJob = ParseJobs.findOne(jobId);
+
+                        if ( !tmpJob.leads ) {
+                            tmpJob.leads=[];
+                        }
+
                         ParseJobs.update({
                             _id:jobId
                         }, {
                             $push: {
                                 leads: tmpLead
+                            },
+                            $inc: {
+                                leadCount: 1
                             }
                         });
 
