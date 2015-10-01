@@ -3,15 +3,25 @@ var request = require('request');
 var GooglePlaces = require("googleplaces");
 var Crawler = require("simplecrawler");
 var verifier = require('email-verify');
+var MongoClient = require('mongodb').MongoClient;
 
+var ParseJobs;
 
-module.exports = function(filename, keyword, locationString, callback) {
-    googleExtract(filename, keyword, locationString, function(leads) {
-        step2(leads);
+module.exports = function(filename, keyword, locationString, radius, jobId, limit, callback) {
+    MongoClient.connect(process.env.MONGO_URL, function(err, db) {
+      mongoDb = db;
+
+      ParseJobs = db.collection("parseJobs");
+
+      googleExtract(filename, keyword, locationString, radius, function(leads) {
+          step2(leads);
+      });
+
     });
 
+
     function step2(leads) {
-        siteParser(leads, function(fullLeads) {
+        siteParser(leads, jobId, limit, function(fullLeads) {
             step3(fullLeads);
         });
     }
@@ -27,7 +37,7 @@ module.exports = function(filename, keyword, locationString, callback) {
     }
 }
 
-function googleExtract(outFile, keyword, locationString, callback) {
+function googleExtract(outFile, keyword, locationString, radius, callback) {
     if (!outFile || !keyword || !locationString) {
         process.exit();
     }
@@ -47,19 +57,18 @@ function googleExtract(outFile, keyword, locationString, callback) {
     }, function(error, response, body) {
         response = JSON.parse(body);
         location = [response.results[0].geometry.location.lat, response.results[0].geometry.location.lng]
-
         findPlaces();
     });
 
     function findPlaces(next_page_token) {
-        if (counter > 100) {
+        if (counter > 1000) {
             return;
         }
 
         var parameters = {
             location: location,
             keyword: keyword,
-            radius: 50000
+            radius: radius
         };
 
         if (next_page_token) {
@@ -120,7 +129,7 @@ function googleExtract(outFile, keyword, locationString, callback) {
     }
 }
 
-function siteParser(leads, callback) {
+function siteParser(leads, jobId, limit, callback) {
     var lastTime;
     var fullLeads = [];
     var count = 0;
@@ -205,7 +214,23 @@ function siteParser(leads, callback) {
                     rating: leads[count].rating
                 };
 
-                fullLeads.push(tmpLead);
+                if ( validEmails.length ) {
+                    fullLeads.push(tmpLead);
+
+                    ParseJobs.update({
+                        _id:jobId
+                    }, {
+                        $push: {
+                            leads: tmpLead
+                        }
+                    });
+
+                    if ( fullLeads.length>= limit ) {
+                        callback(fullLeads);
+                        return;
+                    }
+                }
+                
                 count++;
 
                 // var percent = Math.round((count / leads.length) * 100);
