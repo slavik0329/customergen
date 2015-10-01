@@ -66,7 +66,7 @@ function googleExtract(outFile, keyword, locationString, callback) {
             parameters.pagetoken = next_page_token;
         }
 
-        googlePlaces.placeSearch(parameters, function(error, response) {
+        googlePlaces.radarSearch(parameters, function(error, response) {
             if (error) throw error;
             for (i in response.results) {
                 refs.push(response.results[i].reference)
