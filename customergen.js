@@ -88,7 +88,8 @@ function googleExtract(outFile, keyword, locationString, radius, jobId, callback
                 refs.push(response.results[i].reference)
             }
 
-            if (response.next_page_token && (balance*3)> refs.length ) {
+            // if (response.next_page_token && (balance*3)> refs.length ) {
+            if (response.next_page_token) {
                 setTimeout(function() {
                     findPlaces(response.next_page_token);
                 }, 5000)
@@ -228,12 +229,6 @@ function siteParser(leads, jobId, callback) {
 
                         fullLeads.push(tmpLead);
 
-                        var tmpJob = ParseJobs.findOne(jobId);
-
-                        if ( !tmpJob.leads ) {
-                            tmpJob.leads=[];
-                        }
-
                         ParseJobs.update({
                             _id:jobId
                         }, {
@@ -249,14 +244,25 @@ function siteParser(leads, jobId, callback) {
 
 
 
-                        if ( fullLeads.length>= limit ) {
-                            setTimeout( function () {
-                                callback(fullLeads);
-                            }, 500)
-                            return;
-                        }
+                        // if ( fullLeads.length>= limit ) {
+                        //     setTimeout( function () {
+                        //         callback(fullLeads);
+                        //     }, 500)
+                        //     return;
+                        // }
 
 
+                    } else {
+                        ParseJobs.update({
+                            _id:jobId
+                        }, {
+                            $push: {
+                                unpaid: tmpLead
+                            },
+                            $inc: {
+                                unpaidCount: 1
+                            }
+                        });
                     }
                     
                     count++;
