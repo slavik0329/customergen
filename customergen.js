@@ -245,12 +245,13 @@ function siteParser(leads, jobId, callback) {
                             }
                         });
 
+                        decreaseBalance(jobId);
+
                         if ( fullLeads.length>= limit ) {
                             callback(fullLeads);
                             return;
                         }
 
-                        decreaseBalance(jobId);
 
                     }
                     
