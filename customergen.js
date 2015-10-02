@@ -118,20 +118,25 @@ function googleExtract(outFile, keyword, locationString, radius, jobId, callback
             reference: reference
         }, function(error, response) {
             if (error) throw error;
-            if (response.result.website) {
-                var lead = {
-                    name: response.result.name,
-                    website: response.result.website,
-                    formatted_phone_number: response.result.formatted_phone_number,
-                    formatted_address: response.result.formatted_address,
-                    rating: response.result.rating,
-                };
+            if ( !response.result ) {
 
-                leads.push(lead);
-                // var percent = Math.round((detailIndex / refs.length) * 100)
+            } else {
+                if (response.result.website) {
+                    var lead = {
+                        name: response.result.name,
+                        website: response.result.website,
+                        formatted_phone_number: response.result.formatted_phone_number,
+                        formatted_address: response.result.formatted_address,
+                        rating: response.result.rating,
+                    };
 
-                counter++;
+                    leads.push(lead);
+                    // var percent = Math.round((detailIndex / refs.length) * 100)
+
+                    counter++;
+                }
             }
+            
             nextDetail();
         });
     }
