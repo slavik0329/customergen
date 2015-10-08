@@ -201,6 +201,8 @@ function siteParser(leads, jobId, callback) {
         function finishedSite() {
             
             if ( count+1 > leads.length ) {
+                count++;
+                clearTimeout(myInterval);
                 parseNext();
                 return;
             }
