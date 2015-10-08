@@ -22,6 +22,8 @@ module.exports = function(filename, keyword, locationString, radius, jobId, call
 
 
     function step2(leads) {
+        setTmpLeadCount( jobId, leads.length );
+
         siteParser(leads, jobId, function(fullLeads) {
             step3(fullLeads);
         });
@@ -202,6 +204,8 @@ function siteParser(leads, jobId, callback) {
                 return;
             }
 
+            incrementTmpLeadCount(jobId);
+
             validateEmails(parseEmails, function (validEmails2) {
                 if ( leads[count] == undefined ) {
                     count++;
@@ -370,6 +374,26 @@ function getUserBalance (jobId, callback) {
 
       }
     }
+}
+
+function setTmpLeadCount(jobId, count) {
+    ParseJobs.update({
+        _id: jobId
+    }, {
+        $set: {
+            tmpLeadCount: count
+        }
+    });
+}
+
+function incrementTmpLeadCount(jobId) {
+    ParseJobs.update({
+        _id: jobId
+    }, {
+        $inc: {
+            tmpLeadIndex: 1
+        }
+    });
 }
 
 function decreaseBalance(jobId) {
