@@ -164,7 +164,7 @@ function siteParser(leads, jobId, callback) {
             callback(fullLeads);
             return;
         }
-        var emails = [];
+        var parseEmails = [];
 
         function validateEmails( emails, callback ) {
             var validateCount = 0;
@@ -205,7 +205,7 @@ function siteParser(leads, jobId, callback) {
                 return;
             }
 
-            validateEmails(emails, function (validEmails) {
+            validateEmails(parseEmails, function (validEmails2) {
                 if ( leads[count] == undefined ) {
                     count++;
                     clearTimeout(myInterval);
@@ -220,7 +220,7 @@ function siteParser(leads, jobId, callback) {
 
                 var tmpLead = {
                     name: leads[count].name,
-                    emails: validEmails,
+                    emails: validEmails2,
                     website: leads[count].website,
                     formatted_phone_number: leads[count].formatted_phone_number,
                     formatted_address: leads[count].formatted_address,
@@ -230,7 +230,7 @@ function siteParser(leads, jobId, callback) {
                 getUserBalance( jobId, function (user) {
                     var limit = user.profile.balance;
 
-                    if ( validEmails.length ) {
+                    if ( validEmails2.length ) {
 
                         
                         if (limit>0) {
@@ -261,17 +261,6 @@ function siteParser(leads, jobId, callback) {
                             });
                         }
 
-                        
-
-
-
-                        // if ( fullLeads.length>= limit ) {
-                        //     setTimeout( function () {
-                        //         callback(fullLeads);
-                        //     }, 500)
-                        //     return;
-                        // }
-
 
                     }
                     
@@ -299,10 +288,10 @@ function siteParser(leads, jobId, callback) {
                 var tmpEmails = (html.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi) || []);
 
                 if (tmpEmails.length) {
-                    emails = emails.concat(tmpEmails);
+                    parseEmails = parseEmails.concat(tmpEmails);
                 }
 
-                emails = emails.getUnique();
+                parseEmails = parseEmails.getUnique();
             })
             .on("complete", function() {
                 finishedSite();
@@ -336,6 +325,7 @@ function siteParser(leads, jobId, callback) {
 
         var conditionID = crawler.addFetchCondition(function(parsedURL) {
             return !parsedURL.path.match(/\.(js|jpg|gif|jpeg|bmp|css|png|xml|pdf)/i);
+            // return parsedURL.path.match(/contact/i);
         });
     }
 
