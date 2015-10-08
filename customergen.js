@@ -171,7 +171,7 @@ function siteParser(leads, jobId, callback) {
                     return;
                 }
 
-                verifier.verify( emails[validateCount], function( err, info ){
+                verifier.verify( emails[validateCount], {timeout:10000},function( err, info ){
                   if( err ) {
                     // console.log("false")
                   }
