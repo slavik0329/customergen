@@ -197,6 +197,9 @@ function siteParser(leads, jobId, callback) {
 
         function finishedSite() {
             
+            incrementTmpLeadCount(jobId);
+
+            
             if ( count+1 > leads.length || parseEmails.length<1 ) {
                 count++;
                 clearTimeout(myInterval);
@@ -204,7 +207,6 @@ function siteParser(leads, jobId, callback) {
                 return;
             }
 
-            incrementTmpLeadCount(jobId);
 
             validateEmails(parseEmails, function (validEmails2) {
                 if ( leads[count] == undefined ) {
