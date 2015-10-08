@@ -152,15 +152,10 @@ function siteParser(leads, jobId, callback) {
     parseNext();
 
     function parseNext() {
-        myInterval = setTimeout(function() {
-            crawler.stop();
-
-            finishedSite();
-        }, 30000)
+        clearTimeout(myInterval);
 
         if (leads.length < count + 1) {
             var json = JSON.stringify(fullLeads);
-            clearTimeout(myInterval);
             callback(fullLeads);
             return;
         }
@@ -200,7 +195,7 @@ function siteParser(leads, jobId, callback) {
 
         function finishedSite() {
             
-            if ( count+1 > leads.length ) {
+            if ( count+1 > leads.length || parseEmails.length<1 ) {
                 count++;
                 clearTimeout(myInterval);
                 parseNext();
@@ -283,6 +278,12 @@ function siteParser(leads, jobId, callback) {
 
         }
 
+        myInterval = setTimeout(function() {
+            crawler.stop();
+
+            finishedSite();
+        }, 30000)
+
         crawler = Crawler.crawl(leads[count].website)
             .on("fetchcomplete", function(queueItem, buf, response) {
                 var html = buf.toString();
@@ -296,6 +297,7 @@ function siteParser(leads, jobId, callback) {
                 parseEmails = parseEmails.getUnique();
             })
             .on("complete", function() {
+                clearTimeout( myInterval );
                 finishedSite();
             })
             .on("fetchtimeout", function(queueItem) {
